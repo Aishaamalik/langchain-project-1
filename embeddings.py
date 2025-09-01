@@ -34,4 +34,4 @@ def embed_and_store_documents(documents):
 def retrieve_relevant_chunks(query, top_k=5):
     query_embedding = embed_text(query)
     results = collection.query(query_embeddings=[query_embedding], n_results=top_k)
-    return results["documents"][0]
+    return results["documents"][0], results["metadatas"][0]

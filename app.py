@@ -29,10 +29,10 @@ if query:
     monitor_index_changes()
     
     # Retrieve relevant chunks from vector store
-    relevant_chunks = retrieve_relevant_chunks(query)
-    
+    relevant_chunks, metadatas = retrieve_relevant_chunks(query)
+
     # Generate answer with context and citations
-    answer, citations, highlights = generate_answer(query, relevant_chunks)
+    answer, citations, highlights = generate_answer(query, relevant_chunks, metadatas)
     
     st.markdown("### Answer:")
     st.write(answer)
