@@ -17,14 +17,17 @@ def monitor_index_changes():
     changed_docs = []
     for root, _, files in os.walk(data_folder):
         for file in files:
-            if file.endswith(".pdf") or file.endswith(".txt") or file.endswith(".docx"):
+            if file.endswith((".pdf", ".txt", ".docx", ".doc", ".pptx")):
                 path = os.path.join(root, file)
                 checksum = compute_checksum(path)
                 if file not in file_checksums or file_checksums[file] != checksum:
                     file_checksums[file] = checksum
                     changed_docs.append(path)
     if changed_docs:
-        # Re-embed changed documents
-        # Load and process changed docs, then embed
-        # This requires loading files from disk, implement as needed
-        pass
+        from utils import load_documents_from_paths
+        from embeddings import embed_and_store_documents
+
+        # Load and process changed documents from disk
+        docs = load_documents_from_paths(changed_docs)
+        # Embed and store updated documents
+        embed_and_store_documents(docs)

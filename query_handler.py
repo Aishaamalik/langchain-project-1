@@ -24,14 +24,17 @@ def generate_answer(query, relevant_chunks, metadatas):
 
     # Parse citations using regex
     citation_pattern = r'\[doc:([^\s]+)\s+p\.(\d+)\]'
-    citations = re.findall(citation_pattern, full_response)
+    citation_matches = re.findall(citation_pattern, full_response)
 
-    # Format citations as list of strings
-    citations = [f"[doc:{filename} p.{page}]" for filename, page in citations]
+    # Format citations as list of strings and remove duplicates
+    citations = list(set([f"[doc:{filename} p.{page}]" for filename, page in citation_matches]))
 
     # Parse supporting passages (assuming they are in quotes)
     highlight_pattern = r'"([^"]*)"'
     highlights = re.findall(highlight_pattern, full_response)
+
+    # Filter highlights to remove short or irrelevant ones (e.g., document names)
+    highlights = [h for h in highlights if len(h) > 10 and not h.endswith('.pdf') and not h.endswith('.txt') and not h.endswith('.docx')]
 
     # Remove citations from answer to get clean answer
     answer = re.sub(citation_pattern, '', full_response).strip()
