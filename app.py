@@ -19,21 +19,68 @@ if 'chats' not in st.session_state:
 # Sidebar for chat management
 with st.sidebar:
     st.header("💬 Chats")
-    
+
+    # CSS for uniform button width in sidebar
+    st.markdown("""
+        <style>
+        div.stButton > button {
+            width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: left;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
     if st.button("➕ New Chat"):
         new_chat = create_new_chat()
         st.session_state.current_chat_id = new_chat['id']
         st.session_state.chats = list_chats()
         st.rerun()
-    
+
     st.divider()
-    
+
     for chat in st.session_state.chats:
-        # Show only short chat title for uniform size
-        chat_title = chat['title'][:20] + ("..." if len(chat['title']) > 20 else "")
-        if st.button(chat_title, key=chat['id']):
-            st.session_state.current_chat_id = chat['id']
-            st.rerun()
+        col1, col2 = st.columns([9, 1])
+        with col1:
+            if st.button(chat['title'], key=f"select_{chat['id']}", help=chat['title']):
+                st.session_state.current_chat_id = chat['id']
+                st.rerun()
+        with col2:
+            with st.popover("⋮"):
+                # Rename
+                new_name = st.text_input("New name", value=chat['title'], key=f"rename_input_{chat['id']}")
+                if st.button("Save Rename", key=f"save_rename_{chat['id']}"):
+                    rename_chat(chat['id'], new_name)
+                    st.session_state.chats = list_chats()
+                    st.rerun()
+                # Delete
+                if st.button("Delete", key=f"delete_{chat['id']}"):
+                    if st.session_state.current_chat_id == chat['id']:
+                        other_chats = [c for c in st.session_state.chats if c['id'] != chat['id']]
+                        if other_chats:
+                            st.session_state.current_chat_id = other_chats[0]['id']
+                        else:
+                            new_chat = create_new_chat()
+                            st.session_state.current_chat_id = new_chat['id']
+                            st.session_state.chats = list_chats()
+                    delete_chat(chat['id'])
+                    st.session_state.chats = list_chats()
+                    st.rerun()
+                # Archive
+                if st.button("Archive", key=f"archive_{chat['id']}"):
+                    if st.session_state.current_chat_id == chat['id']:
+                        other_chats = [c for c in st.session_state.chats if c['id'] != chat['id']]
+                        if other_chats:
+                            st.session_state.current_chat_id = other_chats[0]['id']
+                        else:
+                            new_chat = create_new_chat()
+                            st.session_state.current_chat_id = new_chat['id']
+                            st.session_state.chats = list_chats()
+                    archive_chat(chat['id'])
+                    st.session_state.chats = list_chats()
+                    st.rerun()
 
 # Main chat interface
 st.markdown("""
