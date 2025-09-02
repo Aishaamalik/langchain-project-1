@@ -1,7 +1,7 @@
 import streamlit as st
 from utils import load_and_process_documents
 from embeddings import embed_and_store_documents, retrieve_relevant_chunks
-from query_handler import generate_answer
+from query_handler import generate_answer, generate_streaming_answer
 from index_monitor import monitor_index_changes
 from chat_manager import create_new_chat, load_chat, list_chats, add_message_to_chat, add_uploaded_files_to_chat, delete_chat, archive_chat, rename_chat
 
@@ -179,10 +179,35 @@ if prompt := st.chat_input("💬 Ask a question..."):
     try:
         monitor_index_changes()
         relevant_chunks, metadatas = retrieve_relevant_chunks(prompt)
-        answer, citations, highlights = generate_answer(prompt, relevant_chunks, metadatas)
         
-        # Add assistant message
-        add_message_to_chat(st.session_state.current_chat_id, "assistant", answer, citations, highlights)
+        # Use streaming answer generator
+        answer_generator = generate_streaming_answer(prompt, relevant_chunks, metadatas)
+        
+        # Display streaming response token by token
+        with st.chat_message("assistant"):
+            assistant_message_placeholder = st.empty()
+            full_answer = ""
+            for token in answer_generator:
+                full_answer += token
+                assistant_message_placeholder.markdown(full_answer)
+                # Optional: add a small delay for smoother streaming effect
+                # time.sleep(0.05)
+        
+        # After streaming complete, parse citations and highlights
+        import re
+        citation_pattern = r'\[doc:([^\s]+)\s+p\.(\d+)\]'
+        citation_matches = re.findall(citation_pattern, full_answer)
+        citations = list(set([f"[doc:{filename} p.{page}]" for filename, page in citation_matches]))
+        
+        highlight_pattern = r'"([^"]*)"'
+        highlights = re.findall(highlight_pattern, full_answer)
+        highlights = [h for h in highlights if len(h) > 10 and not h.endswith('.pdf') and not h.endswith('.txt') and not h.endswith('.docx')]
+        
+        # Remove citations from answer
+        answer_clean = re.sub(citation_pattern, '', full_answer).strip()
+        
+        # Add assistant message to chat
+        add_message_to_chat(st.session_state.current_chat_id, "assistant", answer_clean, citations, highlights)
         
         st.rerun()
     except Exception as e:

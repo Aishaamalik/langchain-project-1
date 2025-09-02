@@ -40,3 +40,25 @@ def generate_answer(query, relevant_chunks, metadatas):
     answer = re.sub(citation_pattern, '', full_response).strip()
 
     return answer, citations, highlights
+
+def generate_streaming_answer(query, relevant_chunks, metadatas):
+    # Assemble context from relevant chunks
+    context = "\n\n".join(relevant_chunks)
+
+    prompt = f"""
+    You are a helpful assistant. Use the following context to answer the question.
+
+    Context:
+    {context}
+
+    Question:
+    {query}
+
+    Provide the answer with citations in the format [doc:filename.pdf p.X] and highlight supporting passages in quotes.
+    """
+
+    stream = ollama.chat(model='llama2', messages=[{'role': 'user', 'content': prompt}], stream=True)
+
+    for chunk in stream:
+        if 'message' in chunk and 'content' in chunk['message']:
+            yield chunk['message']['content']
