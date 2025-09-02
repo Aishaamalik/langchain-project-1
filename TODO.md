@@ -1,12 +1,7 @@
-# TODO List for Chatbot UI and Memory Implementation
+# TODO List for Chat History Bar Updates
 
-- [x] Create chat_manager.py: Module to handle chat sessions, saving/loading conversations, associating with uploaded files.
-- [x] Update app.py: Redesign UI to chatbot style with message bubbles, icons, chat input at bottom.
-- [x] Add session state for current chat, list of chats.
-- [x] Implement new chat creation, chat selection.
-- [x] Persist chats to disk (e.g., JSON files in data/chats).
-- [x] Display chat history in chat format, with user/assistant messages.
-- [x] Integrate file uploads into chat context.
-- [x] Test UI and memory functionality.
-- [x] Add preview snippet and date to chat history display.
-- [x] Add delete chat feature with confirmation and fallback handling.
+- [x] Update sidebar chat list rendering to show only short chat titles for uniform size
+- [x] Remove dropdown menu from sidebar, only show chat titles as buttons for switching
+- [x] Remove hamburger menu from main chat interface
+- [x] Update chat titles: "New Chat" for empty chats, based on first user message for chats with data
+- [x] Test the changes to verify chat titles, uniform sizes, and switching functionality

@@ -42,16 +42,27 @@ def list_chats():
             chat_id = file[:-5]
             chat = load_chat(chat_id)
             if chat:
+                # Update title for chats with messages but still "New Chat"
+                if chat['title'] == "New Chat" and chat['messages']:
+                    first_user_msg = next((msg['content'] for msg in chat['messages'] if msg['role'] == 'user'), None)
+                    if first_user_msg:
+                        chat['title'] = first_user_msg[:20] + ("..." if len(first_user_msg) > 20 else "")
+                        save_chat(chat)  # Update the saved chat with new title
                 # Add preview snippet and formatted date for display
                 last_message = chat["messages"][-1]["content"] if chat["messages"] else ""
                 chat["preview"] = (last_message[:50] + "...") if len(last_message) > 50 else last_message
                 chat["formatted_date"] = chat["created_at"].split("T")[0] + " " + chat["created_at"].split("T")[1].split(".")[0]
-                chats.append(chat)
+                # Only include non-archived chats
+                if not chat.get('archived', False):
+                    chats.append(chat)
     return sorted(chats, key=lambda x: x["created_at"], reverse=True)
 
 def add_message_to_chat(chat_id, role, content, citations=None, highlights=None):
     chat = load_chat(chat_id)
     if chat:
+        # Update title if it's "New Chat" and this is the first user message
+        if role == "user" and chat['title'] == "New Chat":
+            chat['title'] = content[:20] + ("..." if len(content) > 20 else "")
         message = {
             "role": role,
             "content": content,
@@ -79,5 +90,21 @@ def delete_chat(chat_id):
     chat_file = os.path.join(CHAT_DIR, f"{chat_id}.json")
     if os.path.exists(chat_file):
         os.remove(chat_file)
+        return True
+    return False
+
+def archive_chat(chat_id):
+    chat = load_chat(chat_id)
+    if chat:
+        chat['archived'] = True
+        save_chat(chat)
+        return True
+    return False
+
+def rename_chat(chat_id, new_title):
+    chat = load_chat(chat_id)
+    if chat:
+        chat['title'] = new_title
+        save_chat(chat)
         return True
     return False
