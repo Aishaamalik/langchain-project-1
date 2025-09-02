@@ -54,7 +54,38 @@ with st.sidebar:
                     st.error("Failed to delete chat!")
 
 # Main chat interface
-st.title("🤖 Private PDF/Docs Q&A Chatbot")
+st.markdown("""
+<div style="text-align: center;">
+<h1 id="typewriter">🧠 DocuMind AI</h1>
+</div>
+
+<style>
+#typewriter {
+  overflow: hidden;
+  border-right: .15em solid #007bff;
+  white-space: nowrap;
+  margin: 0 auto;
+  letter-spacing: .15em;
+  animation: typing 2s steps(15, end), blink-caret .75s step-end infinite;
+}
+
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent }
+  50% { border-color: #007bff }
+}
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<div style="text-align: center; margin-top: 10px;">
+<p style="font-size: 18px; color: #666;">Intelligent Document Assistant | Private & Secure</p>
+</div>
+""", unsafe_allow_html=True)
 
 # Load current chat
 current_chat = load_chat(st.session_state.current_chat_id)
