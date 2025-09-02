@@ -42,6 +42,10 @@ def list_chats():
             chat_id = file[:-5]
             chat = load_chat(chat_id)
             if chat:
+                # Add preview snippet and formatted date for display
+                last_message = chat["messages"][-1]["content"] if chat["messages"] else ""
+                chat["preview"] = (last_message[:50] + "...") if len(last_message) > 50 else last_message
+                chat["formatted_date"] = chat["created_at"].split("T")[0] + " " + chat["created_at"].split("T")[1].split(".")[0]
                 chats.append(chat)
     return sorted(chats, key=lambda x: x["created_at"], reverse=True)
 
@@ -70,3 +74,10 @@ def add_uploaded_files_to_chat(chat_id, files):
                 "uploaded_at": datetime.now().isoformat()
             })
         save_chat(chat)
+
+def delete_chat(chat_id):
+    chat_file = os.path.join(CHAT_DIR, f"{chat_id}.json")
+    if os.path.exists(chat_file):
+        os.remove(chat_file)
+        return True
+    return False

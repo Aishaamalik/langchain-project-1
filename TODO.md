@@ -7,4 +7,6 @@
 - [x] Persist chats to disk (e.g., JSON files in data/chats).
 - [x] Display chat history in chat format, with user/assistant messages.
 - [x] Integrate file uploads into chat context.
-- [ ] Test UI and memory functionality.
+- [x] Test UI and memory functionality.
+- [x] Add preview snippet and date to chat history display.
+- [x] Add delete chat feature with confirmation and fallback handling.

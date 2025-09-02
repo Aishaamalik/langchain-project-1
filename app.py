@@ -3,7 +3,7 @@ from utils import load_and_process_documents
 from embeddings import embed_and_store_documents, retrieve_relevant_chunks
 from query_handler import generate_answer
 from index_monitor import monitor_index_changes
-from chat_manager import create_new_chat, load_chat, list_chats, add_message_to_chat, add_uploaded_files_to_chat
+from chat_manager import create_new_chat, load_chat, list_chats, add_message_to_chat, add_uploaded_files_to_chat, delete_chat
 
 st.set_page_config(page_title="Private PDF/Docs Q&A (RAG)", page_icon="🤖", layout="wide")
 
@@ -29,9 +29,29 @@ with st.sidebar:
     st.divider()
     
     for chat in st.session_state.chats:
-        if st.button(f"📄 {chat['title'][:20]}...", key=chat['id']):
-            st.session_state.current_chat_id = chat['id']
-            st.rerun()
+        col1, col2 = st.columns([4, 1])
+        with col1:
+            preview = chat.get('preview', 'No messages')
+            date = chat.get('formatted_date', chat['created_at'][:10])
+            if st.button(f"📄 {chat['title'][:20]}...\n{preview}\n🕒 {date}", key=chat['id']):
+                st.session_state.current_chat_id = chat['id']
+                st.rerun()
+        with col2:
+            if st.button("🗑️", key=f"delete_{chat['id']}"):
+                if delete_chat(chat['id']):
+                    st.success("Chat deleted!")
+                    # If deleted chat was current, switch to first available or create new
+                    if st.session_state.current_chat_id == chat['id']:
+                        remaining_chats = list_chats()
+                        if remaining_chats:
+                            st.session_state.current_chat_id = remaining_chats[0]['id']
+                        else:
+                            new_chat = create_new_chat()
+                            st.session_state.current_chat_id = new_chat['id']
+                    st.session_state.chats = list_chats()
+                    st.rerun()
+                else:
+                    st.error("Failed to delete chat!")
 
 # Main chat interface
 st.title("🤖 Private PDF/Docs Q&A Chatbot")
