@@ -33,6 +33,24 @@ with st.sidebar:
         </style>
     """, unsafe_allow_html=True)
 
+    # CSS for fixed sidebar width and hidden scrollbar
+    st.markdown("""
+        <style>
+        .stSidebar, .sidebar, [data-testid="stSidebar"] {
+            width: 250px !important;
+            min-width: 250px !important;
+            max-width: 250px !important;
+            overflow: auto !important;
+        }
+        .stSidebar::-webkit-scrollbar, .sidebar::-webkit-scrollbar, [data-testid="stSidebar"]::-webkit-scrollbar {
+            display: none !important;
+        }
+        .stSidebar, .sidebar, [data-testid="stSidebar"] {
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
     if st.button("➕ New Chat"):
         new_chat = create_new_chat()
         st.session_state.current_chat_id = new_chat['id']
