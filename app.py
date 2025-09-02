@@ -3,80 +3,91 @@ from utils import load_and_process_documents
 from embeddings import embed_and_store_documents, retrieve_relevant_chunks
 from query_handler import generate_answer
 from index_monitor import monitor_index_changes
+from chat_manager import create_new_chat, load_chat, list_chats, add_message_to_chat, add_uploaded_files_to_chat
 
-st.set_page_config(page_title="Private PDF/Docs Q&A (RAG)", layout="wide")
+st.set_page_config(page_title="Private PDF/Docs Q&A (RAG)", page_icon="🤖", layout="wide")
 
-st.title("Private PDF/Docs Question Answering System")
+# Initialize session state
+if 'current_chat_id' not in st.session_state:
+    new_chat = create_new_chat()
+    st.session_state.current_chat_id = new_chat['id']
+    st.session_state.chats = list_chats()
 
-# Initialize session state for query history
-if 'query_history' not in st.session_state:
-    st.session_state.query_history = []
+if 'chats' not in st.session_state:
+    st.session_state.chats = list_chats()
 
-# Sidebar for query history
+# Sidebar for chat management
 with st.sidebar:
-    st.header("Query History")
-    if st.session_state.query_history:
-        for i, q in enumerate(st.session_state.query_history):
-            st.write(f"{i+1}. {q}")
-    else:
-        st.write("No queries yet.")
+    st.header("💬 Chats")
     
-    if st.button("Clear History"):
-        st.session_state.query_history = []
+    if st.button("➕ New Chat"):
+        new_chat = create_new_chat()
+        st.session_state.current_chat_id = new_chat['id']
+        st.session_state.chats = list_chats()
         st.rerun()
+    
+    st.divider()
+    
+    for chat in st.session_state.chats:
+        if st.button(f"📄 {chat['title'][:20]}...", key=chat['id']):
+            st.session_state.current_chat_id = chat['id']
+            st.rerun()
 
-# File uploader with drag and drop
+# Main chat interface
+st.title("🤖 Private PDF/Docs Q&A Chatbot")
+
+# Load current chat
+current_chat = load_chat(st.session_state.current_chat_id)
+
+# Display chat messages
+chat_container = st.container()
+with chat_container:
+    for msg in current_chat['messages']:
+        with st.chat_message(msg['role']):
+            st.write(msg['content'])
+            if 'citations' in msg and msg['citations']:
+                st.markdown("**Source Citations:**")
+                for c in msg['citations']:
+                    st.write(c)
+            if 'highlights' in msg and msg['highlights']:
+                st.markdown("**Supporting Passages:**")
+                for h in msg['highlights']:
+                    st.write(f"> {h}")
+
+# File uploader in chat
 uploaded_files = st.file_uploader(
-    "Upload PDF or supported documents", 
+    "📎 Upload documents to chat", 
     type=["pdf", "txt", "docx", "doc", "pptx"], 
-    accept_multiple_files=True
+    accept_multiple_files=True,
+    key="file_uploader"
 )
 
 if uploaded_files:
     try:
-        # Process and index documents with progress bar
-        progress_bar = st.progress(0)
-        st.info("Processing documents...")
+        st.info("🔄 Processing documents...")
         docs = load_and_process_documents(uploaded_files)
-        progress_bar.progress(50)
         embed_and_store_documents(docs)
-        progress_bar.progress(100)
-        st.success("Documents indexed successfully!")
+        add_uploaded_files_to_chat(st.session_state.current_chat_id, uploaded_files)
+        st.success("✅ Documents indexed and added to chat!")
     except Exception as e:
-        st.error(f"Error processing documents: {str(e)}")
+        st.error(f"❌ Error processing documents: {str(e)}")
 
-# Query input
-col1, col2 = st.columns([4, 1])
-with col1:
-    query = st.text_input("Enter your question:")
-with col2:
-    if st.button("Clear Query"):
-        query = ""
-
-if query:
+# Chat input
+if prompt := st.chat_input("💬 Ask a question..."):
+    # Add user message
+    add_message_to_chat(st.session_state.current_chat_id, "user", prompt)
+    
+    # Process query
     try:
-        # Add to history
-        if query not in st.session_state.query_history:
-            st.session_state.query_history.append(query)
-        
-        # Monitor index for changes and re-embed if needed
         monitor_index_changes()
+        relevant_chunks, metadatas = retrieve_relevant_chunks(prompt)
+        answer, citations, highlights = generate_answer(prompt, relevant_chunks, metadatas)
         
-        # Retrieve relevant chunks from vector store
-        relevant_chunks, metadatas = retrieve_relevant_chunks(query)
-
-        # Generate answer with context and citations
-        answer, citations, highlights = generate_answer(query, relevant_chunks, metadatas)
+        # Add assistant message
+        add_message_to_chat(st.session_state.current_chat_id, "assistant", answer, citations, highlights)
         
-        st.markdown("### Answer:")
-        st.write(answer)
-        
-        st.markdown("### Source Citations:")
-        for c in citations:
-            st.write(c)
-        
-        st.markdown("### Supporting Passages:")
-        for h in highlights:
-            st.write(f"> {h}")
+        st.rerun()
     except Exception as e:
-        st.error(f"Error processing query: {str(e)}")
+        error_msg = f"❌ Error: {str(e)}"
+        add_message_to_chat(st.session_state.current_chat_id, "assistant", error_msg)
+        st.rerun()
