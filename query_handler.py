@@ -42,30 +42,33 @@ def generate_answer(query, relevant_chunks, metadatas):
     return answer, citations, highlights
 
 def generate_streaming_answer(query, relevant_chunks=None, metadatas=None, mode='document'):
-    if mode == 'general' or not relevant_chunks:
-        prompt = f"""
-        You are a helpful assistant. Answer the user's question in a friendly and informative way. Format your response using markdown for better readability, such as bold, italics, lists, or code blocks if appropriate.
+    system_prompt = "You are a helpful AI assistant like ChatGPT. Always respond in a friendly, informative, and engaging way. Use markdown formatting for better readability, such as **bold**, *italics*, lists, or code blocks when appropriate. Handle any type of query gracefully, including greetings, general questions, or complex topics."
 
-        Question:
-        {query}
-        """
+    if mode == 'general' or not relevant_chunks:
+        messages = [
+            {'role': 'system', 'content': system_prompt},
+            {'role': 'user', 'content': query}
+        ]
     else:
         # Assemble context from relevant chunks
         context = "\n\n".join(relevant_chunks)
 
-        prompt = f"""
-        You are a helpful assistant. Use the following context to answer the question. Format your response using markdown for better readability, such as bold, italics, lists, or code blocks if appropriate.
+        user_content = f"""
+        Use the following context to answer the question accurately. If the context is relevant, base your answer on it and include citations in the format [doc:filename.pdf p.X]. Otherwise, provide a general helpful response.
 
         Context:
         {context}
 
         Question:
         {query}
-
-        Provide the answer with citations in the format [doc:filename.pdf p.X] and highlight supporting passages in quotes.
         """
 
-    stream = ollama.chat(model='llama2', messages=[{'role': 'user', 'content': prompt}], stream=True)
+        messages = [
+            {'role': 'system', 'content': system_prompt},
+            {'role': 'user', 'content': user_content}
+        ]
+
+    stream = ollama.chat(model='llama2', messages=messages, stream=True)
 
     for chunk in stream:
         if 'message' in chunk and 'content' in chunk['message']:

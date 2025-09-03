@@ -1,4 +1,5 @@
 import streamlit as st
+import time
 from utils import load_and_process_documents
 from embeddings import embed_and_store_documents, retrieve_relevant_chunks
 from query_handler import generate_answer, generate_streaming_answer
@@ -178,6 +179,7 @@ if st.session_state.show_file_uploader:
             embed_and_store_documents(docs)
             add_uploaded_files_to_chat(st.session_state.current_chat_id, uploaded_files)
             st.success("✅ Documents indexed and added to chat!")
+            time.sleep(3)
             st.session_state.show_file_uploader = False
             st.rerun()
         except Exception as e:
@@ -206,6 +208,11 @@ with col1:
                 similarities = [1 - d for d in distances]
                 max_sim = max(similarities) if similarities else 0
                 mode = 'general' if max_sim < 0.5 else 'document'
+
+            # Force general mode for short queries or common greetings
+            if len(prompt.strip()) < 10 or prompt.lower().strip() in ['hi', 'hello', 'hey', 'greetings', 'hi!', 'hello!', 'hey!', 'greetings!']:
+                mode = 'general'
+                relevant_chunks, metadatas = [], []
 
             # Use streaming answer generator
             answer_generator = generate_streaming_answer(prompt, relevant_chunks, metadatas, mode)
