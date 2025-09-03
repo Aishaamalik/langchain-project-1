@@ -41,21 +41,29 @@ def generate_answer(query, relevant_chunks, metadatas):
 
     return answer, citations, highlights
 
-def generate_streaming_answer(query, relevant_chunks, metadatas):
-    # Assemble context from relevant chunks
-    context = "\n\n".join(relevant_chunks)
+def generate_streaming_answer(query, relevant_chunks=None, metadatas=None, mode='document'):
+    if mode == 'general' or not relevant_chunks:
+        prompt = f"""
+        You are a helpful assistant. Answer the user's question in a friendly and informative way. Format your response using markdown for better readability, such as bold, italics, lists, or code blocks if appropriate.
 
-    prompt = f"""
-    You are a helpful assistant. Use the following context to answer the question.
+        Question:
+        {query}
+        """
+    else:
+        # Assemble context from relevant chunks
+        context = "\n\n".join(relevant_chunks)
 
-    Context:
-    {context}
+        prompt = f"""
+        You are a helpful assistant. Use the following context to answer the question. Format your response using markdown for better readability, such as bold, italics, lists, or code blocks if appropriate.
 
-    Question:
-    {query}
+        Context:
+        {context}
 
-    Provide the answer with citations in the format [doc:filename.pdf p.X] and highlight supporting passages in quotes.
-    """
+        Question:
+        {query}
+
+        Provide the answer with citations in the format [doc:filename.pdf p.X] and highlight supporting passages in quotes.
+        """
 
     stream = ollama.chat(model='llama2', messages=[{'role': 'user', 'content': prompt}], stream=True)
 

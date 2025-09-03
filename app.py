@@ -193,10 +193,22 @@ with col1:
         # Process query
         try:
             monitor_index_changes()
-            relevant_chunks, metadatas = retrieve_relevant_chunks(prompt)
-            
+            try:
+                relevant_chunks, metadatas, distances = retrieve_relevant_chunks(prompt)
+            except Exception:
+                relevant_chunks, metadatas, distances = [], [], []
+
+            # Determine mode: general or document based on similarity
+            if not relevant_chunks or not distances:
+                mode = 'general'
+                relevant_chunks, metadatas = [], []
+            else:
+                similarities = [1 - d for d in distances]
+                max_sim = max(similarities) if similarities else 0
+                mode = 'general' if max_sim < 0.5 else 'document'
+
             # Use streaming answer generator
-            answer_generator = generate_streaming_answer(prompt, relevant_chunks, metadatas)
+            answer_generator = generate_streaming_answer(prompt, relevant_chunks, metadatas, mode)
             
             # Display streaming response token by token
             with st.chat_message("assistant"):
