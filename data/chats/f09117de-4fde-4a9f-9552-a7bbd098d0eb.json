@@ -1,0 +1,24 @@
+{
+  "id": "f09117de-4fde-4a9f-9552-a7bbd098d0eb",
+  "title": "Which country has re...",
+  "created_at": "2025-09-03T15:22:30.124500",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Which country has reported the most deaths?",
+      "timestamp": "2025-09-03T15:23:16.698097"
+    },
+    {
+      "role": "assistant",
+      "content": "Thank you for providing the context. To answer your question, based on the data provided, the country that has reported the most deaths is the US.\n\nAccording to the data, the US has reported 148011 deaths, which is significantly higher than any other country listed in the context. As stated in the context, \"Deaths / 100 Cases: 3.45\" for the US, indicating that the death rate per 100 cases is 3.45%. This is the highest death rate among all countries listed in the context.\n\nHere are the supporting passages from the provided documents:\n\n* \"Deaths: 148011\" [doc: filename.pdf p.X]\n* \"Deaths / 100 Cases: 3.45\" [doc:filename.pdf p.X]\n\nTherefore, the answer to your question is that the US has reported the most deaths among the countries listed in the context.",
+      "timestamp": "2025-09-03T15:24:58.446455"
+    }
+  ],
+  "uploaded_files": [
+    {
+      "name": "country_wise_latest.csv",
+      "type": "text/csv",
+      "uploaded_at": "2025-09-03T15:23:04.543173"
+    }
+  ]
+}

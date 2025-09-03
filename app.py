@@ -16,6 +16,9 @@ if 'current_chat_id' not in st.session_state:
 if 'chats' not in st.session_state:
     st.session_state.chats = list_chats()
 
+if 'show_file_uploader' not in st.session_state:
+    st.session_state.show_file_uploader = False
+
 # Sidebar for chat management
 with st.sidebar:
     st.header("💬 Chats")
@@ -142,75 +145,92 @@ chat_container = st.container()
 with chat_container:
     for msg in current_chat['messages']:
         with st.chat_message(msg['role']):
-            st.write(msg['content'])
-            if 'citations' in msg and msg['citations']:
-                st.markdown("**Source Citations:**")
-                for c in msg['citations']:
-                    st.write(c)
-            if 'highlights' in msg and msg['highlights']:
-                st.markdown("**Supporting Passages:**")
-                for h in msg['highlights']:
-                    st.write(f"> {h}")
+            # Display formatted content gracefully like ChatGPT
+            # Removed import of markdown module to avoid ModuleNotFoundError
+            # import streamlit.components.v1 as components
 
-# File uploader in chat
-uploaded_files = st.file_uploader(
-    "📎 Upload documents to chat", 
-    type=["pdf", "txt", "docx", "doc", "pptx"], 
-    accept_multiple_files=True,
-    key="file_uploader"
-)
+            # Display markdown content directly
+            formatted_content = msg['content']
+            st.markdown(formatted_content, unsafe_allow_html=True)
 
-if uploaded_files:
-    try:
-        st.info("🔄 Processing documents...")
-        docs = load_and_process_documents(uploaded_files)
-        embed_and_store_documents(docs)
-        add_uploaded_files_to_chat(st.session_state.current_chat_id, uploaded_files)
-        st.success("✅ Documents indexed and added to chat!")
-    except Exception as e:
-        st.error(f"❌ Error processing documents: {str(e)}")
+            # Remove display of citations and highlights as per user request
+            # if 'citations' in msg and msg['citations']:
+            #     st.markdown("**Source Citations:**")
+            #     for c in msg['citations']:
+            #         st.markdown(c)
+            # if 'highlights' in msg and msg['highlights']:
+            #     st.markdown("**Supporting Passages:**")
+            #     for h in msg['highlights']:
+            #         st.markdown(f"> {h}")
 
-# Chat input
-if prompt := st.chat_input("💬 Ask a question..."):
-    # Add user message
-    add_message_to_chat(st.session_state.current_chat_id, "user", prompt)
-    
-    # Process query
-    try:
-        monitor_index_changes()
-        relevant_chunks, metadatas = retrieve_relevant_chunks(prompt)
+# File uploader popup triggered by plus icon
+if st.session_state.show_file_uploader:
+    uploaded_files = st.file_uploader(
+        "📎 Upload documents to chat",
+        type=None,  # Accept any file type
+        accept_multiple_files=True,
+        key="file_uploader"
+    )
+    if uploaded_files:
+        try:
+            st.info("🔄 Processing documents...")
+            docs = load_and_process_documents(uploaded_files)
+            embed_and_store_documents(docs)
+            add_uploaded_files_to_chat(st.session_state.current_chat_id, uploaded_files)
+            st.success("✅ Documents indexed and added to chat!")
+            st.session_state.show_file_uploader = False
+            st.rerun()
+        except Exception as e:
+            st.error(f"❌ Error processing documents: {str(e)}")
+
+# Chat input with plus icon button on the right
+col1, col2 = st.columns([20, 1], gap="small")
+with col1:
+    if prompt := st.chat_input("💬 Ask a question..."):
+        # Add user message
+        add_message_to_chat(st.session_state.current_chat_id, "user", prompt)
         
-        # Use streaming answer generator
-        answer_generator = generate_streaming_answer(prompt, relevant_chunks, metadatas)
-        
-        # Display streaming response token by token
-        with st.chat_message("assistant"):
-            assistant_message_placeholder = st.empty()
-            full_answer = ""
-            for token in answer_generator:
-                full_answer += token
-                assistant_message_placeholder.markdown(full_answer)
-                # Optional: add a small delay for smoother streaming effect
-                # time.sleep(0.05)
-        
-        # After streaming complete, parse citations and highlights
-        import re
-        citation_pattern = r'\[doc:([^\s]+)\s+p\.(\d+)\]'
-        citation_matches = re.findall(citation_pattern, full_answer)
-        citations = list(set([f"[doc:{filename} p.{page}]" for filename, page in citation_matches]))
-        
-        highlight_pattern = r'"([^"]*)"'
-        highlights = re.findall(highlight_pattern, full_answer)
-        highlights = [h for h in highlights if len(h) > 10 and not h.endswith('.pdf') and not h.endswith('.txt') and not h.endswith('.docx')]
-        
-        # Remove citations from answer
-        answer_clean = re.sub(citation_pattern, '', full_answer).strip()
-        
-        # Add assistant message to chat
-        add_message_to_chat(st.session_state.current_chat_id, "assistant", answer_clean, citations, highlights)
-        
-        st.rerun()
-    except Exception as e:
-        error_msg = f"❌ Error: {str(e)}"
-        add_message_to_chat(st.session_state.current_chat_id, "assistant", error_msg)
+        # Process query
+        try:
+            monitor_index_changes()
+            relevant_chunks, metadatas = retrieve_relevant_chunks(prompt)
+            
+            # Use streaming answer generator
+            answer_generator = generate_streaming_answer(prompt, relevant_chunks, metadatas)
+            
+            # Display streaming response token by token
+            with st.chat_message("assistant"):
+                assistant_message_placeholder = st.empty()
+                full_answer = ""
+                for token in answer_generator:
+                    full_answer += token
+                    assistant_message_placeholder.markdown(full_answer)
+                    # Optional: add a small delay for smoother streaming effect
+                    # time.sleep(0.05)
+            
+            # After streaming complete, parse citations and highlights
+            import re
+            citation_pattern = r'\[doc:([^\s]+)\s+p\.(\d+)\]'
+            # Remove citations and highlights completely as per user request
+            # citation_matches = re.findall(citation_pattern, full_answer)
+            # citations = list(set([f"[doc:{filename} p.{page}]" for filename, page in citation_matches]))
+            
+            # highlight_pattern = r'"([^"]*)"'
+            # highlights = re.findall(highlight_pattern, full_answer)
+            # highlights = [h for h in highlights if len(h) > 10 and not h.endswith('.pdf') and not h.endswith('.txt') and not h.endswith('.docx')]
+            
+            # Remove citations from answer
+            answer_clean = re.sub(citation_pattern, '', full_answer).strip()
+            
+            # Add assistant message to chat without citations and highlights
+            add_message_to_chat(st.session_state.current_chat_id, "assistant", answer_clean)
+            
+            st.rerun()
+        except Exception as e:
+            error_msg = f"❌ Error: {str(e)}"
+            add_message_to_chat(st.session_state.current_chat_id, "assistant", error_msg)
+            st.rerun()
+with col2:
+    if st.button("☰", help="Add files"):
+        st.session_state.show_file_uploader = not st.session_state.show_file_uploader
         st.rerun()
