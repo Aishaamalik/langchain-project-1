@@ -54,7 +54,7 @@ def generate_streaming_answer(query, relevant_chunks=None, metadatas=None, mode=
         context = "\n\n".join(relevant_chunks)
 
         user_content = f"""
-        Use the following context to answer the question accurately. If the context is relevant, base your answer on it and include citations in the format [doc:filename.pdf p.X]. Otherwise, provide a general helpful response.
+        Answer the question using ONLY the provided context. If the context does not contain the information needed to answer the question, say 'The information is not available in the provided documents.' Do not use any external knowledge or assumptions.
 
         Context:
         {context}
