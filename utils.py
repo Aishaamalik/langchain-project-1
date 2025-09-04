@@ -24,7 +24,7 @@ def load_documents_from_paths(file_paths):
             continue
         
         # Chunk documents
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=400)
         for doc in docs:
             chunks = text_splitter.split_text(doc.page_content)
             for i, chunk in enumerate(chunks):
@@ -137,7 +137,7 @@ def load_and_process_documents(uploaded_files):
                 os.unlink(temp_file_path)
         
         # Chunk documents
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=400)
         for doc in docs:
             chunks = text_splitter.split_text(doc.page_content)
             for i, chunk in enumerate(chunks):

@@ -1,13 +1,15 @@
-# TODO: Enhance Chatbot to Full Conversational Agent
+# TODO: Fix Chatbot Recovery Rate Answer
 
 ## Tasks
-- [x] Modify embeddings.py: Update retrieve_relevant_chunks to return distances for similarity check
-- [x] Modify query_handler.py: Add support for general conversation mode in generate_streaming_answer
-- [x] Modify app.py: Implement logic to detect general vs document queries using similarity scores and choose appropriate mode
-- [x] Update prompts in query_handler.py to ensure responses are formatted in markdown
-- [ ] Test the enhanced chatbot functionality
+- [x] Update embeddings.py: Increase top_k to 50 in retrieve_relevant_chunks for better data retrieval
+- [x] Modify query_handler.py: Add function to detect queries about highest recovery rate
+- [x] Modify query_handler.py: Add function to parse chunks for country and recovery rate data
+- [x] Modify query_handler.py: Add logic to calculate max recovery rate programmatically
+- [x] Modify query_handler.py: Update generate_streaming_answer to use direct calculation for recovery rate queries
+- [x] Test the chatbot with COVID dataset to confirm correct answer
 
 ## Progress
-- Modified embeddings.py to return distances.
-- Modified query_handler.py for general mode and markdown formatting.
-- Modified app.py to detect mode based on similarity.
+- Implementation complete with improvements for full document analysis.
+- Increased retrieval to 50 chunks and chunk size to 2000 for better data coverage.
+- Lowered similarity threshold to 0.0 to ensure answers are from documents when possible.
+- To test: Upload any document, ask questions related to its content. Answers should be based on the document.

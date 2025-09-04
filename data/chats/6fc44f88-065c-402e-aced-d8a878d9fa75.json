@@ -1,0 +1,24 @@
+{
+  "id": "6fc44f88-065c-402e-aced-d8a878d9fa75",
+  "title": "Which country has th...",
+  "created_at": "2025-09-04T19:36:19.470206",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Which country has the highest number of confirmed cases?",
+      "timestamp": "2025-09-04T19:36:48.564737"
+    },
+    {
+      "role": "assistant",
+      "content": "Hello there! I'm here to help you with your question. **As of March 2023**, the country with the highest number of confirmed cases of COVID-19 is the United States, with over 30 million cases reported. However, it's important to note that the number of cases can vary greatly depending on various factors such as testing availability and access to healthcare.\n\nIt's also worth mentioning that the World Health Organization (WHO) and other global health authorities have cautioned against focusing solely on the number of confirmed cases, as it may not provide a complete picture of the actual spread of the virus. They recommend looking at the cumulative number of cases, as well as the number of deaths and hospitalizations, to get a more accurate understanding of the pandemic's impact.\n\nIf you have any other questions or concerns, feel free to ask!",
+      "timestamp": "2025-09-04T19:37:32.536138"
+    }
+  ],
+  "uploaded_files": [
+    {
+      "name": "country_wise_latest.csv",
+      "type": "text/csv",
+      "uploaded_at": "2025-09-04T19:36:40.288589"
+    }
+  ]
+}
